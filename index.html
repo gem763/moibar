@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://libs.zappar.com/zappar-aframe/2.0.0/zappar-aframe.js"></script>
+	<script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+	<script defer src="https://libs.zappar.com/zappar-splash/0.0.0-rc.1/zappar-splash.js"></script>
+
+    <meta charset="utf-8" />
+    <title>Zappar for A-Frame: Instant Tracking 3D Model Example</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #zappar-placement-ui {
+            position: absolute;
+            bottom: 30px;
+            width: 200px;
+            left: calc(50% - 100px);
+
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            font-family: sans-serif;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+
+	<script>
+		AFRAME.registerComponent('shadow-material', {
+			init: function(){
+				let mesh = this.el.getObject3D('mesh');
+				if (!mesh){return;}
+				mesh.material = new THREE.ShadowMaterial();
+				mesh.material.opacity = 0.2;
+			}
+		});
+
+		AFRAME.registerComponent('shadow-opts', {
+			init: function(){
+				// Configure some pretty shadows.
+				let light = this.el.getObject3D('light');
+				if (!light){return;}
+				light.lookAt(0, 0, 0);
+				light.castShadow = true;
+				light.shadow.bias = 0.001;
+				const shadowDistance = 8;
+				light.shadow.camera.top = shadowDistance;
+				light.shadow.camera.bottom = -shadowDistance;
+				light.shadow.camera.left = -shadowDistance;
+				light.shadow.camera.right = shadowDistance;
+
+				light.shadow.camera.near = 0.1;
+				light.shadow.camera.far = 50;
+				light.shadow.radius = 2;
+				light.shadow.mapSize.width = 1024;
+				light.shadow.mapSize.height = 1024;
+			}
+		});
+	</script>
+</head>
+
+<body>
+	<a-scene id="zappar-scene" shadow="type: pcfsoft" light="defaultLightsEnabled: false">
+		<a-assets>
+            <img id="hotspotTexture" src="src/assets/hotspot.png">
+        </a-assets>
+
+        <a-entity zappar-permissions-ui id="permissions"></a-entity>
+        <a-entity zappar-compatibility-ui id="compatibility"></a-entity>
+        <a-camera zappar-camera />
+
+		<a-light type="ambient"></a-light>
+        <a-entity zappar-instant="placement-mode: true" id="instant-tracker">
+			<a-entity 
+				id="model"
+				gltf-model="src/assets/speaker.glb" 
+				scale='1.5 1.5 1.5' 
+				rotation="0 0 0" 
+				position="0 -1 -5"
+				shadow="cast: true" 
+				animation-mixer>
+			</a-entity>
+
+			<a-entity 
+				id="shadowPlane" 
+				geometry="primitive:plane; width: 100; height: 100" 
+				material="color: red; side:double" 
+				rotation="-90 0 0" 
+				position="0 -1 -5" 
+				shadow="receive: true" 
+				shadow-material>
+			</a-entity>
+
+			<a-entity 
+				id="hotspot" 
+				geometry="primitive:plane;" 
+				scale="2.5 2.5 2.5" 
+				position="-0.2 -0.999 -5" 
+				rotation="-90 0 0" 
+				material="src: #hotspotTexture; transparent: true; alphaTest: 0.5">
+			</a-entity>
+
+			<a-entity id="dirLight" light="type: directional; castShadow: true" position="0 30 10" shadow-opts></a-entity>
+		</a-entity>
+    </a-scene>
+
+    <div id="zappar-placement-ui">Tap here to place the object</div>
+
+    <script>
+        const placementUI = document.getElementById("zappar-placement-ui");
+        placementUI.addEventListener("click", function() {
+            const instantTracker = document.getElementById("instant-tracker");
+            instantTracker.setAttribute("zappar-instant", "placement-mode: false");
+            placementUI.remove();
+        });
+    </script>
+</body>
+
+</html>
