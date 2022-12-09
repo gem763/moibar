@@ -1,0 +1,23 @@
+<!-- <script type='text/x-template' id='apptest-template'>
+    <div class='apptest vcomp'>
+		APP-TEST
+    </div>
+</script> -->
+
+<script type='text/x-template' id='apptest-template'>
+    <div class='apptest vcomp'>
+		AAA-APPTEST
+    </div>
+</script>
+
+<script>
+// import { ref } from 'vue'
+// console.log(ref)
+
+app.component('apptest', {
+    template: '#apptest-template',
+	setup() {
+		console.log('component loaded');
+	}
+});
+</script>

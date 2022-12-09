@@ -1,0 +1,85 @@
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://libs.zappar.com/zappar-aframe/2.0.0/zappar-aframe.js"></script>
+	<!-- <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-extras@8c9b13a/dist/aframe-extras.min.js"></script> -->
+	<script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+
+    <!-- <script type="importmap">
+        {
+          "imports": {
+            "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+          }
+        }
+    </script> -->
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ar > .placer {
+            position: absolute;
+            bottom: 30px;
+            /* width: 200px; */
+            /* left: calc(50% - 100px); */
+            left: 50%;
+            transform: translateX(-50%);
+
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            font-family: sans-serif;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .ar.placed > .placer {
+            background: silver;
+            color: black
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <ar></ar>
+    </div>
+
+    <section data-include="/src/ar.html"></section>
+
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+        window.app = createApp({});
+        app.config.compilerOptions.isCustomElement = (tag) => tag.includes('a-')
+
+        const doms = document.querySelectorAll('section[data-include]');
+
+        let defs = Array.from(doms).map(d => {
+            let def = $.Deferred(); 
+            $(d).load(d.dataset.include, () => {
+                def.resolve(); 
+            });
+            return def
+        });
+        
+        $.when(...defs).done(() => { 
+            app.mount('#app');
+        });
+    </script>
+</body>
+</html>

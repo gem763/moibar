@@ -2,7 +2,10 @@
 import { onMounted, ref, computed } from 'vue'
 const placer = ref(null);
 const instantTracker = ref(null);
-const showcase = ref(null);
+const showcaseBase = ref(null);
+const showcaseCategory = ref(null);
+const showcaseMovie = ref(null);
+const video = ref(null);
 const model = ref(null);
 
 const mode = ref('placing');
@@ -48,6 +51,23 @@ AFRAME.registerComponent('shadow-opts', {
 	}
 });
 
+
+// AFRAME.registerComponent('material-init', {
+// 	init: function() {
+// 		this.el.addEventListener('model-loaded', () => {
+// 			const obj = this.el.getObject3D('mesh');
+			
+// 			obj.traverse(n => {
+// 				if (n.isMesh) {
+// 					console.log(n.material)
+// 					n.material.transparent = true;
+// 					n.opacity = 0.1;
+// 				}
+// 			})
+// 		})
+// 	}
+// })
+
 AFRAME.registerComponent('close', {
 	init: function() {
 		console.log('close')
@@ -56,7 +76,15 @@ AFRAME.registerComponent('close', {
 	events: {
 		click: function(e) {
 			if (mode.value == 'placed' && showcaseOn.value) {
-				this.el.parentEl.components.show.close()
+				// console.log(this.el.parentEl.components)
+				const components = this.el.parentEl.components;
+				if ('show' in components) {
+					this.el.parentEl.components.show.close()
+
+				} else if ('movie' in components) {
+					this.el.parentEl.components.movie.close()
+				}
+				
 			}
 			e.stopPropagation();
 		}
@@ -153,7 +181,7 @@ AFRAME.registerComponent('show', {
 		this.geo_stored = this.getGeos();
 
 		const scaler = 1.5;
-		this.el.setAttribute('position', { x: 0, y: 1, z: 2 });
+		this.el.setAttribute('position', { x: 0, y: 1, z: 1 });
 		this.el.setAttribute('rotation', { x: 0, y: 0, z: 0 });
 		
 		this.el.setAttribute('scale', { 
@@ -218,22 +246,107 @@ AFRAME.registerComponent('show', {
 	}
 })
 
+AFRAME.registerComponent('movie', {
+	schema: {
+
+	},
+
+	init: function() {
+		console.log('movie')
+		// this.playing = false;
+		this.geo_initial = this.getGeos();
+		this.geo_stored = {};
+	},
+
+	getGeo: function(type) {
+		const geo = this.el.getAttribute(type);
+		return { x: geo.x, y: geo.y, z: geo.z }
+	},
+
+	getGeos: function() {
+		return {
+			position: this.getGeo('position'),
+			rotation: this.getGeo('rotation'),
+			scale: this.getGeo('scale'),
+		}
+	},
+
+	open: function() {
+		this.geo_stored = this.getGeos();
+
+		const scaler = 1.5;
+		this.el.setAttribute('position', { x: 0, y: 1, z: 1 });
+		this.el.setAttribute('rotation', { x: 0, y: 0, z: 0 });
+		
+		this.el.setAttribute('scale', { 
+			x: this.geo_stored.scale.x * scaler, 
+			y: this.geo_stored.scale.y * scaler, 
+			z: this.geo_stored.scale.z * scaler 
+		});
+
+		showcaseOn.value = true;
+		document.querySelector('#movie').play();
+	},
+
+	close: function() {
+		this.el.setAttribute('position', this.geo_stored.position);
+		this.el.setAttribute('rotation', this.geo_stored.rotation);
+		this.el.setAttribute('scale', this.geo_stored.scale);
+
+		showcaseOn.value = false;
+		document.querySelector('#movie').pause();
+	},
+
+	reset: function() {
+		this.el.setAttribute('position', this.geo_initial.position);
+		this.el.setAttribute('rotation', this.geo_initial.rotation);
+		this.el.setAttribute('scale', this.geo_initial.scale);
+
+		showcaseOn.value = false;
+		document.querySelector('#movie').pause();
+	},
+
+	events: {
+		click: function(e) {
+			if (mode.value == 'placed' && !showcaseOn.value) {
+				this.open();
+
+			} else if (mode.value == 'placed' && showcaseOn.value) {
+				// console.log(video.value)
+				// video.value.play();
+				// document.querySelector('#movie').play();
+				// console.log(document.querySelector('video'))
+				// this.el.querySelector('#movie').play()
+			}
+			e.stopPropagation();
+		}
+	}
+})
+
 const placeHere = () => {
 	if (mode.value == 'placing') {
 		instantTracker.value.setAttribute('zappar-instant', 'placement-mode: false');
 		mode.value = 'placed';
 
 		model.value.setAttribute('animation-mixer', 'timeScale', 1);
-		showcase.value.setAttribute('animation', "property: scale; loop: false; from: 0 0 0.001; to: 1.5 0.84 0.001; dur: 200; easing: easeInQuad")
+		showcaseBase.value.setAttribute('animation', "property: scale; loop: false; from: 0 0 0.001; to: 1.5 0.84 0.001; dur: 200; easing: easeInQuad")
+		showcaseCategory.value.setAttribute('animation', "property: scale; loop: false; from: 0 0 0.001; to: 1.5 0.84 0.001; dur: 200; easing: easeInQuad")
+		showcaseMovie.value.setAttribute('animation', "property: scale; loop: false; from: 0 0 0.001; to: 1.5 0.84 0.001; dur: 200; easing: easeInQuad")
 
 	} else if (mode.value == 'placed') {
 		instantTracker.value.setAttribute('zappar-instant', 'placement-mode: true');
 		mode.value = 'placing';
 
-		showcase.value.components.show.reset();
+		showcaseBase.value.components.show.reset();
+		showcaseCategory.value.components.show.reset();
+		showcaseMovie.value.components.movie.reset();
+
+		showcaseBase.value.removeAttribute('animation');
+		showcaseCategory.value.removeAttribute('animation');
+		showcaseMovie.value.removeAttribute('animation');
+
 		model.value.removeAttribute('animation-mixer');
 		model.value.setAttribute('animation-mixer', 'timeScale', 0);
-		showcase.value.removeAttribute('animation');
 	}
 	// placer.value.remove();	
 }
@@ -242,6 +355,11 @@ const placeHere = () => {
 // 	console.log(1234);
 // 	e.stopPropagation();
 // }
+
+// window.addEventListener('click', function () { 
+//    document.querySelector('video').play();
+//  });
+
 </script>
 
 <template>
@@ -252,10 +370,17 @@ const placeHere = () => {
 			light="defaultLightsEnabled: false">
 
 			<a-assets>
-				<img id="hotspotTexture" src="src/assets/hotspot.png">
-				<img id="base_0" src="src/assets/showcase/base/base_0.jpg">
-				<img id="base_1" src="src/assets/showcase/base/base_1.jpg">
-				<img id="icon_close" src="src/assets/close.png">
+				<img id="hotspotTexture" src="/src/assets/hotspot.png">
+				<img id="base_0" src="/src/assets/showcase/base/base_0.jpg">
+				<img id="base_1" src="/src/assets/showcase/base/base_1.jpg">
+				<img id="cat_0" src="/src/assets/showcase/category/cat_0.jpg">
+				<img id="cat_1" src="/src/assets/showcase/category/cat_1.jpg">
+				<img id="cat_2" src="/src/assets/showcase/category/cat_2.jpg">
+				<img id="cat_3" src="/src/assets/showcase/category/cat_3.jpg">
+				<img id="cat_4" src="/src/assets/showcase/category/cat_4.jpg">
+				<img id="cat_5" src="/src/assets/showcase/category/cat_5.jpg">
+				<img id="icon_close" src="/src/assets/close.png">
+				<video id="movie" webkit-playsinline playsinline muted autoplay loop="true" src="https://storage.googleapis.com/sideb-proejct.appspot.com/hosting/arpopup_demo.mp4"></video>
 			</a-assets>
 
 			<a-entity zappar-permissions-ui id="permissions"></a-entity>
@@ -285,11 +410,12 @@ const placeHere = () => {
 				</a-entity>
 
 				<a-box
-					ref="showcase"
-					class="showcase base clickable"
+					ref="showcaseBase"
+					class="showcase clickable"
 					position="-1 1 0"
 					rotation="-45 20 0"
 					scale="0 0 0.001"
+					shadow="cast: true"
 					material="src: #base_0"
 					show="pages: #base_0, #base_1">
 
@@ -317,6 +443,67 @@ const placeHere = () => {
 						color="black"
 						material="opacity: 0"
 						prev>
+					</a-plane>
+				</a-box>
+
+				<a-box
+					ref="showcaseCategory"
+					class="showcase clickable"
+					position="1 1 0"
+					rotation="-45 -20 0"
+					scale="0 0 0.001"
+					shadow="cast: true"
+					material="src: #cat_0"
+					show="pages: #cat_0, #cat_1, #cat_2, #cat_3, #cat_4, #cat_5">
+
+					<a-plane
+						class="close clickable"
+						position="0.46 -0.6 1"
+						scale="0.11 0.19 1"
+						material="src: #icon_close; side: double; transparent: true"
+						close>
+					</a-plane>
+
+					<a-plane
+						class="arrow-right clickable"
+						position="0.45 0.006 1"
+						scale="0.08 0.5 1"
+						color="black"
+						material="opacity: 0"
+						next>
+					</a-plane>
+
+					<a-plane
+						class="arrow-left clickable"
+						position="-0.45 0.006 1"
+						scale="0.08 0.5 1"
+						color="black"
+						material="opacity: 0"
+						prev>
+					</a-plane>
+				</a-box>
+
+				<a-box
+					ref="showcaseMovie"
+					class="showcase clickable"
+					position="0 2 -0.5"
+					scale="0 0 0.001"
+					rotation="-30 0 0"
+					shadow="cast: true"
+					movie>
+
+					<a-video 
+						ref="video"
+						src="#movie"
+						position="0 0 1">
+					</a-video>
+
+					<a-plane
+						class="close clickable"
+						position="0.46 -0.6 1"
+						scale="0.11 0.19 1"
+						material="src: #icon_close; side: double; transparent: true"
+						close>
 					</a-plane>
 				</a-box>
 

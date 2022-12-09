@@ -1,15 +1,24 @@
-<!DOCTYPE html>
 <html>
-
 <head>
-	<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-latest.min.js"></script> -->
+
+    <!-- <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" /> -->
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <!-- <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script> -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://libs.zappar.com/zappar-aframe/2.0.0/zappar-aframe.js"></script>
 	<!-- <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-extras@8c9b13a/dist/aframe-extras.min.js"></script> -->
 	<script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-	<script defer src="https://libs.zappar.com/zappar-splash/0.0.0-rc.1/zappar-splash.js"></script>
 
-    <meta charset="utf-8" />
-    <title>Zappar for A-Frame: Instant Tracking 3D Model Example</title>
+    <!-- <script type="importmap">
+        {
+          "imports": {
+            "/vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+          }
+        }
+    </script> -->
+
     <style>
         html,
         body {
@@ -22,8 +31,31 @@
 </head>
 
 <body>
-	<div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-</body>
+    <div id="app">
+        <ar></ar>
+    </div>
 
+    <section data-include="./src/ar.html"></section>
+
+    <!-- <script type="module"> -->
+    <script>    
+        const { createApp } = Vue
+        window.app = createApp({});
+        app.config.compilerOptions.isCustomElement = (tag) => tag.includes('a-')
+
+        const doms = document.querySelectorAll('section[data-include]');
+
+        let defs = Array.from(doms).map(d => {
+            let def = $.Deferred(); 
+            $(d).load(d.dataset.include, () => {
+                def.resolve(); 
+            });
+            return def
+        });
+        
+        $.when(...defs).done(() => { 
+            app.mount('#app');
+        });
+    </script>
+</body>
 </html>

@@ -6,11 +6,21 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  server: { https: true },
-  plugins: [vue(), mkcert()],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  }
+	server: { https: true },
+	plugins: [
+		mkcert(), 
+		vue({
+			template: {
+				compilerOptions: {
+					// isCustomElement: (tag) => ['a-*'].includes(tag),
+					isCustomElement: (tag) => tag.includes('a-'),
+			  	}
+			}
+		})
+	],
+	resolve: {
+		alias: {
+			'@': fileURLToPath(new URL('./src', import.meta.url))
+		}
+	}
 })
